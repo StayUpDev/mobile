@@ -15,15 +15,20 @@ import {
   FormControlLabelText,
 } from "@/components/ui/form-control";
 import { Input, InputField } from "@/components/ui/input";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
+import z from "zod";
+import { Divider } from "@/components/ui/divider";
+import { UserRole } from "../types";
 
 export default function Page() {
   // email and password state
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Validation state
   const [isEmailError, setIsEmailError] = useState(false);
@@ -66,7 +71,7 @@ export default function Page() {
 
     // Call the API using onRegister
     try {
-      const res = await onRegister?.(email, password);
+      const res = await onRegister?.(username, email, password);
       setResponse(res); // Store the response if needed
     } catch (e: any) {
       setLoginError(e.message || "An error occurred during registration");
@@ -77,22 +82,76 @@ export default function Page() {
   }
 
   useEffect(() => {
+    if (authState?.userRole === "promoter") {
+      router.push("/pages/protected/promoter/home");
+    } else {
+      router.push("/pages/protected/participant/home");
+    }
     if (response && onLogin) {
       const login = async () => {
-        const res = await onLogin(email, password);
-
-        if (res) router.push("/home");
+        await onLogin(email, password);
       };
 
       login();
     }
-  }, [response]);
+  }, [response, authState]);
+
+  function isValidSubmit(
+    username: string,
+    email: string,
+    password: string,
+    confirmPassword: string
+  ) {
+    const registerUserSchema = z
+      .object({
+        username: z.string().min(4),
+        email: z.string(),
+        password: z.string(),
+        confirmPassword: z.string(),
+      })
+      .superRefine(({ confirmPassword, password }, ctx) => {
+        if (confirmPassword !== password) {
+          ctx.addIssue({
+            code: "custom",
+            message: "The passwords did not match",
+            path: ["confirmPassword"],
+          });
+        }
+      });
+    const parseResult = registerUserSchema.safeParse({
+      username: username,
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
+    });
+
+    return parseResult.success;
+  }
 
   return (
     <View>
       <Center className="h-full w-full flex ">
         <VStack className="max-w-xs w-full gap-4">
-          <FormControl isInvalid={isPasswordError}>
+          {/* TODO: aggiungere validazione per username */}
+          <FormControl>
+            <FormControlLabel>
+              <FormControlLabelText>username</FormControlLabelText>
+            </FormControlLabel>
+            <Input>
+              <InputField
+                type="text"
+                placeholder="mariorossi99"
+                onChangeText={(text) => setUsername(text)}
+                size="lg"
+              ></InputField>
+            </Input>
+            <FormControlError>
+              <FormControlErrorText>
+                Atleast 6 characters are required.
+              </FormControlErrorText>
+            </FormControlError>
+          </FormControl>
+          <FormControl isInvalid={isEmailError}>
             <FormControlLabel>
               <FormControlLabelText>email</FormControlLabelText>
             </FormControlLabel>
@@ -110,7 +169,7 @@ export default function Page() {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-          <FormControl isInvalid={isEmailError}>
+          <FormControl isInvalid={isPasswordError}>
             <FormControlLabel>
               <FormControlLabelText>password</FormControlLabelText>
             </FormControlLabel>
@@ -120,6 +179,24 @@ export default function Page() {
                 placeholder="password"
                 size="lg"
                 onChangeText={(text) => setPassword(text)}
+              ></InputField>
+            </Input>
+            <FormControlError>
+              <FormControlErrorText>
+                Atleast 6 characters are required.
+              </FormControlErrorText>
+            </FormControlError>
+          </FormControl>
+          <FormControl isInvalid={isPasswordError}>
+            <FormControlLabel>
+              <FormControlLabelText>confirm password</FormControlLabelText>
+            </FormControlLabel>
+            <Input>
+              <InputField
+                type="password"
+                placeholder="password"
+                size="lg"
+                onChangeText={(text) => setConfirmPassword(text)}
               ></InputField>
             </Input>
             <FormControlError>
@@ -139,6 +216,10 @@ export default function Page() {
             </Button>
           </ButtonGroup>
         </VStack>
+        <Divider></Divider>
+        <Button variant="link">
+          <Link href={"/pages/login"}>login</Link>
+        </Button>
       </Center>
     </View>
   );

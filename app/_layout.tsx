@@ -22,6 +22,8 @@ import {
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "@/components/ui/text";
 
 const queryClient = new QueryClient();
 
@@ -51,25 +53,12 @@ export default function RootLayout() {
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <Layout />
+            <SafeAreaView>
+              <Slot />
+            </SafeAreaView>
           </ThemeProvider>
         </GluestackUIProvider>
       </QueryClientProvider>
     </AuthProvider>
   );
 }
-
-const Layout = () => {
-  const { authState } = useAuth();
-  const isAuth = authState?.authenticated === true;
-
-  useEffect(() => {
-    if (!isAuth) {
-      // Redirect to login if the user is not authenticated
-      router.replace("/login");
-    }
-  }, [isAuth]);
-
-  // Always render a Slot or Stack on first render
-  return <Slot />;
-};
