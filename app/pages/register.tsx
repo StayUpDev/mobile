@@ -18,7 +18,7 @@ import { Input, InputField } from "@/components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import { Link, router } from "expo-router";
+import { Link, Redirect, router } from "expo-router";
 import z from "zod";
 import { Divider } from "@/components/ui/divider";
 import { UserRole } from "../types";
@@ -82,16 +82,10 @@ export default function Page() {
   }
 
   useEffect(() => {
-    if (authState?.userRole === "promoter") {
-      router.push("/pages/protected/promoter/home");
-    } else {
-      router.push("/pages/protected/participant/home");
-    }
     if (response && onLogin) {
       const login = async () => {
         await onLogin(email, password);
       };
-
       login();
     }
   }, [response, authState]);
@@ -128,7 +122,13 @@ export default function Page() {
     return parseResult.success;
   }
 
-  return (
+  return authState?.authenticated ? (
+    authState.userRole === "promoter" ? (
+      <Redirect href={"/pages/protected/promoter/home"} />
+    ) : (
+      <Redirect href={"/pages/protected/participant/home"} />
+    )
+  ) : (
     <View>
       <Center className="h-full w-full flex ">
         <VStack className="max-w-xs w-full gap-4">

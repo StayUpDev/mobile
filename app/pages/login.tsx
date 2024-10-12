@@ -18,7 +18,7 @@ import { Input, InputField } from "@/components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import { Link, router } from "expo-router";
+import { Link, Redirect, router } from "expo-router";
 import { Divider } from "@/components/ui/divider";
 import { UserRole } from "../types";
 
@@ -43,12 +43,14 @@ export default function Page() {
   const [response, setResponse] = useState<any>(null);
 
   async function handleSubmit() {
+    console.log("login submit");
     // Reset previous errors
     setIsEmailError(false);
     setIsPasswordError(false);
     setLoginError(null);
     // Call the API using onRegister
     try {
+      console.log("on login...", onLogin);
       const res = await onLogin?.(email, password);
     } catch (e: any) {
       setLoginError(e.message || "An error occurred during registration");
@@ -57,15 +59,16 @@ export default function Page() {
       setIsDisabled(false);
     }
   }
-  useEffect(() => {
-    if (authState?.userRole === "promoter") {
-      router.push("/pages/protected/promoter/home");
-    } else {
-      router.push("/pages/protected/participant/home");
-    }
-  }, [authState]);
 
-  return (
+  console.log("auth state> ", authState?.authenticated);
+  console.log("auth user role> ", authState?.userRole);
+  return authState?.authenticated ? (
+    authState.userRole === "promoter" ? (
+      <Redirect href={"/pages/protected/promoter/home"} />
+    ) : (
+      <Redirect href={"/pages/protected/participant/home"} />
+    )
+  ) : (
     <View>
       <Center className="h-full w-full flex ">
         <VStack className="max-w-xs w-full gap-4">

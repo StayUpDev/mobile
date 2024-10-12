@@ -1,9 +1,5 @@
-import { useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
-import { Redirect, router, useRootNavigationState } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Text } from "@/components/ui/text";
-import { UserRole } from "./types";
+import { Redirect, useRootNavigationState } from "expo-router";
 
 export default function Page() {
   const { authState } = useAuth();
@@ -11,6 +7,8 @@ export default function Page() {
   const rootNavigationState = useRootNavigationState();
 
   if (!rootNavigationState?.key) return null;
+
+  console.log("index tsx has been rendered");
 
   return authState?.authenticated === false ? (
     <Redirect href={"/pages/login"} />

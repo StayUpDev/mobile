@@ -22,7 +22,7 @@ interface AuthProps {
 
 const TOKEN_KEY = "my-jwt";
 const USER_KEY = "my-user";
-const API_UL = "http://172.20.10.3:8080/api";
+const API_UL = "http://172.20.10.9:8080/api";
 const AuthContext = createContext<AuthProps>({});
 
 export const useAuth = () => {
@@ -98,6 +98,7 @@ export const AuthProvider = ({ children }: any) => {
   };
 
   const logout = async () => {
+    console.log("Logging out...");
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(USER_KEY);
 

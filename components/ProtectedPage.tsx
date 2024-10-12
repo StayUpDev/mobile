@@ -1,9 +1,5 @@
 import { useAuth } from "@/app/context/AuthContext";
-import { Redirect, router } from "expo-router";
+import { Redirect, router, useRouter } from "expo-router";
+import { useEffect } from "react";
 
-export default function ProtectedPage({ children }: any) {
-  const { authState } = useAuth();
-  const isAuth = authState?.authenticated === true;
-
-  return !isAuth ? <Redirect href={"/pages/register"} /> : <>{children}</>;
-}
+export default function ProtectedPage({ children }: any) {}
